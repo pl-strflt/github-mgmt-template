@@ -73,3 +73,18 @@ global.ResourcesCount = Object.values(global.ResourceCounts).reduce(
   (a, b) => a + b,
   0
 )
+global.UniqueResourceCounts = {
+  [Member.name]: 2,
+  [Repository.name]: 7,
+  [Team.name]: 2,
+  [RepositoryCollaborator.name]: 1,
+  [RepositoryBranchProtectionRule.name]: 1,
+  [RepositoryTeam.name]: 7,
+  [TeamMember.name]: 2,
+  [RepositoryFile.name]: 1,
+  [RepositoryLabel.name]: 2
+}
+global.UniqueResourcesCount = Object.values(global.UniqueResourceCounts).reduce(
+  (a, b) => a + b,
+  0
+)

@@ -6,7 +6,7 @@ import {Id, StateSchema} from '../terraform/schema'
 
 @Exclude()
 export class RepositoryLabel implements Resource {
-  static StateType: string = 'github_issue_label'
+  static StateType: string = 'github_issue_labels'
   static async FromGitHub(
     _labels: RepositoryLabel[]
   ): Promise<[Id, RepositoryLabel][]> {
@@ -15,8 +15,11 @@ export class RepositoryLabel implements Resource {
     const result: [Id, RepositoryLabel][] = []
     for (const label of labels) {
       result.push([
-        `${label.repository.name}:${label.label.name}`,
-        new RepositoryLabel(label.repository.name, label.label.name)
+        label.repository.name,
+        plainToClassFromExist(
+          new RepositoryLabel(label.repository.name, label.label.name),
+          label.label
+        )
       ])
     }
     return result
@@ -29,15 +32,14 @@ export class RepositoryLabel implements Resource {
           resource.type === RepositoryLabel.StateType &&
           resource.mode === 'managed'
         ) {
-          labels.push(
-            plainToClassFromExist(
-              new RepositoryLabel(
-                resource.values.repository,
-                resource.values.name
-              ),
-              resource.values
+          for (const label of resource.values.label) {
+            labels.push(
+              plainToClassFromExist(
+                new RepositoryLabel(resource.values.repository, label.name),
+                label
+              )
             )
-          )
+          }
         }
       }
     }
@@ -72,6 +74,7 @@ export class RepositoryLabel implements Resource {
   get repository(): string {
     return this._repository
   }
+
   private _name: string
   get name(): string {
     return this._name
@@ -81,10 +84,10 @@ export class RepositoryLabel implements Resource {
   @Expose() description?: string
 
   getSchemaPath(_schema: ConfigSchema): Path {
-    return ['repositories', this.repository, 'labels', this.name]
+    return new Path('repositories', this.repository, 'labels', this._name)
   }
 
   getStateAddress(): string {
-    return `${RepositoryLabel.StateType}.this["${this.repository}:${this.name}"]`
+    return `${RepositoryLabel.StateType}.this["${this.repository}"]`
   }
 }
